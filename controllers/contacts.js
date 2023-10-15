@@ -1,15 +1,15 @@
-const contacts = require("../models/contacts");
-const HttpError = require("../helpers/HttpError");
-const { controllerWrapper } = require("../helpers/controllerWrapper");
+const { Contact } = require("../models/contacts");
+
+const { controllerWrapper, HttpError } = require("../helpers");
 
 const getAll = async (req, res, next) => {
-  const result = await contacts.listContacts();
+  const result = await Contact.find();
   res.json(result);
 };
 
 const getContactById = async (req, res, next) => {
   const { contactId } = req.params;
-  const result = await contacts.getContactById(contactId);
+  const result = await Contact.findById(contactId);
   if (!result) {
     throw HttpError(404, "Not found");
   }
@@ -17,14 +17,13 @@ const getContactById = async (req, res, next) => {
 };
 
 const addContact = async (req, res, next) => {
-  console.log("req.body:", req.body);
-  const result = await contacts.addContact(req.body);
+  const result = await Contact.create(req.body);
   res.status(201).json(result);
 };
 
 const removeContact = async (req, res, next) => {
   const { contactId } = req.params;
-  const result = await contacts.removeContact(contactId);
+  const result = await Contact.findByIdAndRemove({ _id: contactId });
   if (!result) {
     throw HttpError(404, "Not found");
   }
@@ -34,7 +33,17 @@ const removeContact = async (req, res, next) => {
 const updateContact = async (req, res, next) => {
   const { contactId } = req.params;
 
-  const result = await contacts.updateContact(contactId, req.body);
+  const result = await Contact.findByIdAndUpdate({ _id: contactId }, req.body, { new: true });
+  if (!result) {
+    throw HttpError(404, "Not Found");
+  }
+  res.json(result);
+};
+
+const updateStatusContact = async (req, res, next) => {
+  const { contactId } = req.params;
+
+  const result = await Contact.findByIdAndUpdate({ _id: contactId }, req.body, { new: true });
   if (!result) {
     throw HttpError(404, "Not Found");
   }
@@ -47,4 +56,5 @@ module.exports = {
   addContact: controllerWrapper(addContact),
   removeContact: controllerWrapper(removeContact),
   updateContact: controllerWrapper(updateContact),
+  updateStatusContact: controllerWrapper(updateStatusContact),
 };
